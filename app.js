@@ -132,4 +132,143 @@ app.post('/index/:user_id/delete', async (req, res) => {
   }
 });
 
+
+// Display all appliances
+app.get('/appliances', async (req, res) => {
+  try {
+    const appliances = await supabaseRequest(
+      'appliances?select=appliance_id,name,type,brand,model,category,purchase_date&order=appliance_id.desc'
+    );
+
+    res.render('appliances', { appliances });
+  } catch (error) {
+    showError(res, error.message);
+  }
+});
+
+
+// Show the Add Appliance form
+app.get('/addAppliance', (req, res) => {
+  res.render('addAppliance');
+});
+
+// Create a new appliance
+app.post('/addAppliance', async (req, res) => {
+  try {
+    const name = req.body.name?.trim();
+    const type = req.body.type?.trim();
+    const category = req.body.category?.trim();
+
+    if (!name || !type || !category) {
+      return showError(res, 'Name, type, and category are required.', 400);
+    }
+
+    const appliance = {
+      name,
+      type,
+      category,
+      brand: req.body.brand?.trim() || null,
+      model: req.body.model?.trim() || null,
+      purchase_date: req.body.purchase_date || null,
+      last_maintenance_date: req.body.last_maintenance_date || null
+    };
+
+    await supabaseRequest('appliances', {
+      method: 'POST',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify(appliance)
+    });
+
+    res.redirect('/appliances');
+  } catch (error) {
+    showError(res, error.message);
+  }
+});
+
+
+// Display the Edit Appliance form
+app.get('/appliances/:appliance_id/edit', async (req, res) => {
+  try {
+    const query = new URLSearchParams({
+      select: '*',
+      appliance_id: `eq.${req.params.appliance_id}`,
+      limit: '1'
+    });
+
+    const rows = await supabaseRequest(`appliances?${query}`);
+
+    if (!rows.length) {
+      return showError(res, 'Appliance not found.', 404);
+    }
+
+    res.render('editAppliance', { item: rows[0] });
+  } catch (error) {
+    showError(res, error.message);
+  }
+});
+
+// Update an existing appliance
+app.post('/appliances/:appliance_id/edit', async (req, res) => {
+  try {
+    const name = req.body.name?.trim();
+    const type = req.body.type?.trim();
+    const category = req.body.category?.trim();
+
+    if (!name || !type || !category) {
+      return showError(res, 'Name, type, and category are required.', 400);
+    }
+
+    const appliance = {
+      name,
+      type,
+      category,
+      brand: req.body.brand?.trim() || null,
+      model: req.body.model?.trim() || null,
+      purchase_date: req.body.purchase_date || null,
+      last_maintenance_date: req.body.last_maintenance_date || null
+    };
+
+    const query = new URLSearchParams({
+      appliance_id: `eq.${req.params.appliance_id}`
+    });
+
+    const rows = await supabaseRequest(`appliances?${query}`, {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify(appliance)
+    });
+
+    if (!rows.length) {
+      return showError(res, 'Appliance not found.', 404);
+    }
+
+    res.redirect('/appliances');
+  } catch (error) {
+    showError(res, error.message);
+  }
+});
+
+
+ // Delete an appliance
+app.post('/appliances/:appliance_id/delete', async (req, res) => {
+  try {
+    const query = new URLSearchParams({
+      appliance_id: `eq.${req.params.appliance_id}`
+    });
+
+    const rows = await supabaseRequest(`appliances?${query}`, {
+      method: 'DELETE',
+      headers: { Prefer: 'return=representation' }
+    });
+
+    if (!rows.length) {
+      return showError(res, 'Appliance not found.', 404);
+    }
+
+    res.redirect('/appliances');
+  } catch (error) {
+    showError(res, error.message);
+  }
+});
+
 app.listen(port, () => console.log(`Server is listening on port ${port}`));
