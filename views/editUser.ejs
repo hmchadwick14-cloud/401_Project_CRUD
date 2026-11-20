@@ -10,11 +10,12 @@
     <h1 class="mb-4">Edit user</h1>
     <form id="editUserForm" action="/editUser/<%= encodeURIComponent(item.user_id) %>/edit" method="POST" class="card card-body shadow-sm">
       <div class="mb-3"><span class="form-label d-block">User ID</span><code><%= item.user_id %></code></div>
-      <div class="mb-3"><span class="form-label d-block">Created</span><%= item.created_at ? new Date(item.created_at).toLocaleString() : '—' %></div>
       <label class="form-label" for="username">Username</label>
-      <input class="form-control mb-3" id="username" name="username" type="text" maxlength="255" value="<%= item.username || '' %>">
+      <input class="form-control mb-3" id="username" name="username" type="text" maxlength="255" value="<%= item.username || '' %>" required>
       <label class="form-label" for="email">Email</label>
-      <input class="form-control mb-3" id="email" name="email" type="email" maxlength="255" value="<%= item.email || '' %>">
+      <input class="form-control mb-3" id="email" name="email" type="email" maxlength="255" value="<%= item.email || '' %>" required>
+      <label class="form-label" for="password">New password (leave blank to keep current password)</label>
+      <input class="form-control mb-3" id="password" name="password" type="password" minlength="12" autocomplete="new-password">
       <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save changes</button><a class="btn btn-outline-secondary" href="/">Cancel</a></div>
     </form>
   </main>

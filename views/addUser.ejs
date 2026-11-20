@@ -9,11 +9,13 @@
   <main class="container py-5" style="max-width: 680px">
     <h1 class="mb-4">Add a new user</h1>
     <form id="addUserForm" action="/addUser" method="POST" class="card card-body shadow-sm">
-      <p class="text-secondary">The database creates the user ID and timestamp automatically.</p>
+      <p class="text-secondary">The database generates the user ID automatically.</p>
       <label class="form-label" for="username">Username</label>
-      <input class="form-control mb-3" id="username" name="username" type="text" maxlength="255">
+      <input class="form-control mb-3" id="username" name="username" type="text" maxlength="255" required>
       <label class="form-label" for="email">Email</label>
-      <input class="form-control mb-3" id="email" name="email" type="email" maxlength="255">
+      <input class="form-control mb-3" id="email" name="email" type="email" maxlength="255" required>
+      <label class="form-label" for="password">Password</label>
+      <input class="form-control mb-3" id="password" name="password" type="password" minlength="12" autocomplete="new-password" required>
       <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Create user</button><button class="btn btn-outline-secondary" type="reset">Clear</button><a class="btn btn-link" href="/">Back to users</a></div>
     </form>
   </main>
