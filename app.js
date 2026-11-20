@@ -2,12 +2,37 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const { randomBytes, scrypt: scryptCallback } = require('crypto');
+const { timingSafeEqual, createHmac } = require('crypto');
 const { promisify } = require('util');
 const scrypt = promisify(scryptCallback);
 
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+const SESSION_SECRET = process.env.SESSION_SECRET || randomBytes(32).toString('hex');
+function signSession(userId) {
+  const payload = Buffer.from(JSON.stringify({ userId, expiresAt: Date.now() + 8 * 60 * 60 * 1000 })).toString('base64url');
+  const signature = createHmac('sha256', SESSION_SECRET).update(payload).digest('base64url');
+  return `${payload}.${signature}`;
+}
+function readSession(token) {
+  if (!token) return null;
+  const [payload, signature] = token.split('.');
+  if (!payload || !signature) return null;
+  const expected = createHmac('sha256', SESSION_SECRET).update(payload).digest();
+  const actual = Buffer.from(signature, 'base64url');
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
+  try {
+    const session = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    return session.expiresAt > Date.now() ? session : null;
+  } catch { return null; }
+}
+app.use((req, res, next) => {
+  const cookie = req.headers.cookie?.split(';').map(part => part.trim()).find(part => part.startsWith('homebase_session='));
+  req.loginSession = readSession(cookie?.slice('homebase_session='.length));
+  next();
+});
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -24,6 +49,14 @@ async function hashPassword(password) {
   const salt = randomBytes(16).toString('hex');
   const derivedKey = await scrypt(password, salt, 64);
   return `scrypt$${salt}$${derivedKey.toString('hex')}`;
+}
+
+async function verifyPassword(password, storedHash) {
+  const [algorithm, salt, keyHex] = (storedHash || '').split('$');
+  if (algorithm !== 'scrypt' || !salt || !/^[a-f0-9]{128}$/i.test(keyHex || '')) return false;
+  const expected = Buffer.from(keyHex, 'hex');
+  const actual = await scrypt(password, salt, expected.length);
+  return timingSafeEqual(actual, expected);
 }
 
 
@@ -70,6 +103,12 @@ function showError(res, message, status = 500) {
   res.status(status).render('error', { message });
 }
 
+// Send anyone who hasn't logged in back to the home page
+function requireLogin(req, res, next) {
+  if (req.loginSession?.userId) return next();
+  res.redirect('/login');
+}
+
 app.get('/', async (req, res) => {
   try {
     const users = await supabaseRequest(`${TABLE}?select=user_id,username,email&order=username.asc`);
@@ -79,9 +118,29 @@ app.get('/', async (req, res) => {
   }
 });
 
-app.get('/addUser', (req, res) => res.render('addUser'));
+app.get('/login', (req, res) => res.render('login', { error: null }));
 
-app.post('/addUser', async (req, res) => {
+app.post('/login', async (req, res) => {
+  try {
+    const username = req.body.username?.trim();
+    const password = req.body.password || '';
+    if (!username || !password) return res.status(400).render('login', { error: 'Enter your username and password.' });
+    const query = new URLSearchParams({ select: 'user_id,password', username: `eq.${username}`, limit: '1' });
+    const rows = await supabaseRequest(`${TABLE}?${query}`);
+    if (!rows.length || !(await verifyPassword(password, rows[0].password))) {
+      return res.status(401).render('login', { error: 'That username or password was not recognized.' });
+    }
+    const token = signSession(rows[0].user_id);
+    res.setHeader('Set-Cookie', `homebase_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=28800${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`);
+    res.redirect('/');
+  } catch (error) {
+    showError(res, error.message);
+  }
+});
+
+app.get('/addUser', requireLogin, (req, res) => res.render('addUser'));
+
+app.post('/addUser', requireLogin, async (req, res) => {
   try {
     const username = req.body.username?.trim() || null;
     const email = req.body.email?.trim() || null;
@@ -153,7 +212,7 @@ app.post('/index/:user_id/delete', async (req, res) => {
 
 
 // Display all appliances
-app.get('/appliances', async (req, res) => {
+app.get('/appliances', requireLogin, async (req, res) => {
   try {
     const appliances = await supabaseRequest(
       'appliances?select=appliance_id,name,type,brand,model,category,purchase_date&order=appliance_id.desc'
@@ -167,7 +226,7 @@ app.get('/appliances', async (req, res) => {
 
 
 // Show the Add Appliance form
-app.get('/addAppliance', (req, res) => {
+app.get('/addAppliance', requireLogin, (req, res) => {
   res.render('addAppliance');
 });
 
