@@ -120,6 +120,11 @@ app.get('/', requireLogin, async (req, res) => {
 
 app.get('/login', (req, res) => res.render('login', { error: null }));
 
+app.post('/logout', (req, res) => {
+  res.setHeader('Set-Cookie', 'homebase_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0');
+  res.redirect('/login');
+});
+
 app.post('/login', async (req, res) => {
   try {
     const username = req.body.username?.trim();
