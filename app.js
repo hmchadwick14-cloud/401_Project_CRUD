@@ -109,7 +109,7 @@ function requireLogin(req, res, next) {
   res.redirect('/login');
 }
 
-app.get('/', async (req, res) => {
+app.get('/', requireLogin, async (req, res) => {
   try {
     const users = await supabaseRequest(`${TABLE}?select=user_id,username,email&order=username.asc`);
     res.render('index', { users });
