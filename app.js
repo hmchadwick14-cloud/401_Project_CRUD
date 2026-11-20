@@ -9,6 +9,7 @@ const scrypt = promisify(scryptCallback);
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 const SESSION_SECRET = process.env.SESSION_SECRET || randomBytes(32).toString('hex');
 function signSession(userId) {

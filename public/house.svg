@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 190" role="img" aria-labelledby="title description">
+  <title id="title">Welcoming house</title>
+  <desc id="description">A green and cream house beneath a sunny sky</desc>
+  <rect width="440" height="190" fill="#dff3e9"/>
+  <circle cx="352" cy="48" r="26" fill="#f7c94b"/>
+  <path d="M0 145c75-24 136-14 205 2 75 17 145 12 235-16v59H0z" fill="#91c99d"/>
+  <path d="M120 92l100-70 100 70v84H120z" fill="#fffaf0"/>
+  <path d="M106 98l114-82 114 82-16 18-98-70-98 70z" fill="#176b4d"/>
+  <rect x="205" y="112" width="30" height="64" rx="4" fill="#77a58d"/>
+  <rect x="145" y="112" width="42" height="38" rx="3" fill="#b9ddd1"/>
+  <rect x="253" y="112" width="42" height="38" rx="3" fill="#b9ddd1"/>
+  <path d="M166 112v38M145 131h42M274 112v38M253 131h42" stroke="#fff" stroke-width="4"/>
+  <circle cx="229" cy="142" r="3" fill="#f7c94b"/>
+  <path d="M76 164c18-31 39-31 57 0M307 164c18-31 39-31 57 0" fill="#4f9567"/>
+  <rect x="0" y="176" width="440" height="14" fill="#78b18a"/>
+</svg>
