@@ -123,12 +123,12 @@ app.get('/login', (req, res) => res.render('login', { error: null }));
 app.post('/login', async (req, res) => {
   try {
     const username = req.body.username?.trim();
-    const password = req.body.password || '';
-    if (!username || !password) return res.status(400).render('login', { error: 'Enter your username and password.' });
-    const query = new URLSearchParams({ select: 'user_id,password', username: `eq.${username}`, limit: '1' });
+    const email = req.body.email?.trim().toLowerCase();
+    if (!username || !email) return res.status(400).render('login', { error: 'Enter your username and email.' });
+    const query = new URLSearchParams({ select: 'user_id', username: `eq.${username}`, email: `eq.${email}`, limit: '1' });
     const rows = await supabaseRequest(`${TABLE}?${query}`);
-    if (!rows.length || !(await verifyPassword(password, rows[0].password))) {
-      return res.status(401).render('login', { error: 'That username or password was not recognized.' });
+    if (!rows.length) {
+      return res.status(401).render('login', { error: 'That username and email combination was not recognized.' });
     }
     const token = signSession(rows[0].user_id);
     res.setHeader('Set-Cookie', `homebase_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=28800${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`);

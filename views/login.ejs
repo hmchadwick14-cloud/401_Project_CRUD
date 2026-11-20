@@ -20,7 +20,7 @@
       <div class="brand-mark mb-4" aria-hidden="true">⌂</div>
       <p class="text-uppercase small fw-semibold text-success mb-2">HomeBase</p>
       <h1 class="h3 fw-bold mb-2">Welcome back</h1>
-      <p class="text-secondary mb-4">Sign in to manage your home.</p>
+      <p class="text-secondary mb-4">Enter your username and associated email to continue.</p>
 
       <% if (error) { %>
         <div class="alert alert-danger" role="alert"><%= error %></div>
@@ -32,8 +32,8 @@
           <input class="form-control" id="username" name="username" autocomplete="username" required autofocus>
         </div>
         <div class="mb-4">
-          <label for="password" class="form-label">Password</label>
-          <input class="form-control" type="password" id="password" name="password" autocomplete="current-password" required>
+          <label for="email" class="form-label">Email</label>
+          <input class="form-control" type="email" id="email" name="email" autocomplete="email" required>
         </div>
         <button class="btn btn-primary w-100" type="submit">Log in</button>
       </form>
